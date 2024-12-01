@@ -1,24 +1,36 @@
 #!/usr/bin/env python3
 
-def parse(file):
+from aocd import get_puzzle
+
+def parse(puzzle):
     left = []
     right = []
-    for line in open(file):
+    for line in puzzle.input_data.splitlines():
         match line.split():
             case [lhs, rhs]:
                 left.append( int(lhs))
                 right.append(int(rhs))
     return left, right
 
-def solve_p1(file):
-    l, r = parse(file)
+# TODO Refactor into common library
+def print_answers(puzzle, part, answer):
+    print(f'Part {part} - {type(puzzle).__name__}: {answer}', end='')
+    if hasattr(puzzle, 'answers'):
+        expected = puzzle.answers[part-1]
+        print(f' ({expected})')
+    else:
+        print()
+
+def solve_p1(puzzle):
+    l, r = parse(puzzle)
     l.sort()
     r.sort()
     diffs = [abs(i-j) for i, j in zip(l,r)]
-    print(f'Part 1 - {file}: {sum(diffs)}')
 
-def solve_p2(file):
-    l, r = parse(file)
+    print_answers(puzzle, 1, sum(diffs))
+
+def solve_p2(puzzle):
+    l, r = parse(puzzle)
     counts = {}
     for ri in r:
         counts.setdefault(ri, 0)
@@ -29,9 +41,14 @@ def solve_p2(file):
         if li in counts:
             tot.append(li * counts[li])
 
-    print(f'Part 2 - {file}: {sum(tot)}')
+    print_answers(puzzle, 2, sum(tot))
 
-solve_p1('./example.txt')
-solve_p1('./input.txt')
-solve_p2('./example.txt')
-solve_p2('./input.txt')
+# TODO Refactor into common library
+puzzle = get_puzzle(day=1, year=2024)
+examples = puzzle.examples
+
+for ex in examples: solve_p1(ex)
+solve_p1(puzzle)
+
+for ex in examples: solve_p2(ex)
+solve_p2(puzzle)
