@@ -2,6 +2,7 @@
 
 from aocd import get_puzzle
 import z3
+from functools import cmp_to_key
 
 def parse(puzzle):
     out = []
@@ -34,23 +35,17 @@ def print_answers(puzzle, part, answer):
 def solve_p1(puzzle):
     rules, orderings = parse(puzzle)
 
-    # print(rules)
-    # print(orderings)
-
     tot = []
     for ordering in orderings:
         passing = True
         for oi, o in enumerate(ordering[:-1]):
             for p in ordering[oi+1:]:
                 if p in rules and o in rules[p]:
-                    # print(f'breaks rule: {o} in {p}')
                     passing = False
                     break
-        # print(f'{ordering=}, {passing=}')
         if passing:
             tot.append(int(ordering[len(ordering)//2]))
 
-    print(tot)
     print_answers(puzzle, 1, sum(tot))
 
 def solve_p2(puzzle):
@@ -67,7 +62,6 @@ def solve_p2(puzzle):
         if not passing:
             failed.append(ordering)
 
-    # print(failed)
     tot = []
     for fs in failed:
         # Use solver to follow ordering rules
@@ -91,9 +85,35 @@ def solve_p2(puzzle):
             print('unsat')
             exit(-1)
 
-    # print(tot)
+    print_answers(puzzle, 2, sum(tot))
+
+def solve_p2_b(puzzle):
+    rules, orderings = parse(puzzle)
+
+    failed = []
+    for ordering in orderings:
+        passing = True
+        for oi, o in enumerate(ordering[:-1]):
+            for p in ordering[oi+1:]:
+                if p in rules and o in rules[p]:
+                    passing = False
+                    break
+        if not passing:
+            failed.append(ordering)
+
+    def rule_cmp(i1, i2):
+        if i1 in rules and i2 in rules[i1]:
+            return -1
+        else:
+            return 0
+
+    tot = []
+    for fs in failed:
+        fs = sorted(fs, key=cmp_to_key(rule_cmp))
+        tot.append(int(fs[len(fs)//2]))
 
     print_answers(puzzle, 2, sum(tot))
+
 
 # TODO Refactor into common library
 puzzle = get_puzzle(day=5, year=2024)
@@ -102,5 +122,9 @@ examples = puzzle.examples
 for ex in examples: solve_p1(ex)
 solve_p1(puzzle)
 
-for ex in examples: solve_p2(ex)
-solve_p2(puzzle)
+# Very slow z3 example...
+# for ex in examples: solve_p2(ex)
+# solve_p2(puzzle)
+
+for ex in examples: solve_p2_b(ex)
+solve_p2_b(puzzle)
